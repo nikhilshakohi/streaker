@@ -63,6 +63,8 @@ model User {
     accounts      Account[]
     sessions      Session[]
     posts         Post[]
+    tasks         Task[]
+    logs          Log[]
 }
 
 model VerificationToken {
@@ -71,4 +73,25 @@ model VerificationToken {
     expires    DateTime
 
     @@unique([identifier, token])
+}
+
+model Task {
+    id         Int      @id @default(autoincrement())
+    name       String
+    userId     String
+    startDate  DateTime
+    endDate    DateTime?
+    streak     Int?
+    user       User    @relation(fields: [userId], references: [id])
+    logs       Log[]
+}
+
+model Log {
+    id             Int      @id @default(autoincrement())
+    taskId         Int
+    completionDate DateTime
+    userId         String
+    task           Task    @relation(fields: [taskId], references: [id])
+    user           User    @relation(fields: [userId], references: [id])
+    @@unique([userId, taskId, completionDate])
 }
