@@ -11,13 +11,6 @@ type Task = {
   streak?: number;
 };
 
-type Log = {
-  id: number;
-  taskId: number;
-  completionDate: Date;
-  userId: string;
-};
-
 export default function StreakList() {
   const [taskData] = api.task.getAll.useSuspenseQuery();
   const [logData] = api.log.getAll.useSuspenseQuery();
