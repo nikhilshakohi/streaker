@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "~/server/api/trpc";
 
+// Type checking while creating task
 const createTaskSchema = z.object({
   name: z.string().min(1),
   startDate: z.string().refine((val) => !isNaN(Date.parse(val))),
@@ -9,6 +10,7 @@ const createTaskSchema = z.object({
 });
 
 export const taskRouter = createTRPCRouter({
+  // Get all tasks of the user
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const tasks = await ctx.db.task.findMany({
       orderBy: { startDate: "desc" },
@@ -16,6 +18,7 @@ export const taskRouter = createTRPCRouter({
     });
     return tasks ?? null;
   }),
+  // Create new task
   create: protectedProcedure
     .input(createTaskSchema)
     .mutation(async ({ ctx, input }) => {
