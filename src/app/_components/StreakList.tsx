@@ -6,8 +6,8 @@ type Task = {
   id: number;
   name: string;
   userId: string;
-  startDate: Date;
-  endDate?: Date;
+  startDate: string;
+  endDate?: string;
   streak?: number;
 };
 
@@ -15,32 +15,29 @@ export default function StreakList() {
   const [taskData] = api.task.getAll.useSuspenseQuery();
   const [logData] = api.log.getAll.useSuspenseQuery();
   const utils = api.useUtils();
-
-  const logTask = api.log.create.useMutation({
-    onSuccess: async () => {
-      await utils.task.getAll.invalidate();
-      await utils.log.getAll.invalidate();
-    },
-  });
-
-  const undoLogTask = api.log.delete.useMutation({
-    onSuccess: async () => {
-      await utils.task.getAll.invalidate();
-      await utils.log.getAll.invalidate();
-    },
-  });
-
-  const handleLog = (taskId: number, hasLoggedToday: boolean) => {
-    hasLoggedToday
-      ? undoLogTask.mutate({ taskId })
-      : logTask.mutate({ taskId });
+  const refreshPage = async () => {
+    await utils.task.getAll.invalidate();
+    await utils.log.getAll.invalidate();
   };
 
+  // Log Task Completion
+  const logTask = api.log.create.useMutation({ onSuccess: refreshPage });
+  // Undo Task Completion
+  const undoLogTask = api.log.delete.useMutation({ onSuccess: refreshPage });
+
+  // Toggle Task
+  const handleLog = (taskId: number, hasLoggedToday: boolean) => {
+    const todayDate = new Date().toISOString().split("T")[0] ?? '';
+    hasLoggedToday
+      ? undoLogTask.mutate({ taskId, todayDate })
+      : logTask.mutate({ taskId, todayDate });
+  };
+
+  // Check Task Status
   const hasLoggedToday = (task: Task): boolean => {
-    const today = new Date().toDateString();
-    return logData.some(
-      (log) =>
-        log.taskId === task.id && log.completionDate.toDateString() === today,
+    const todayDate = new Date().toISOString().split("T")[0] ?? "";
+    return logData?.some(
+      (log) => log.taskId === task.id && log.completionDate === todayDate,
     );
   };
 
@@ -64,7 +61,7 @@ export default function StreakList() {
                       loggedToday ? "btn-secondary" : "btn-primary"
                     }`}
                   >
-                    {loggedToday ? "Undo Today" : "Done Today"}
+                    {loggedToday ? "UNDO" : "DONE"}
                   </button>
                 </div>
               </li>

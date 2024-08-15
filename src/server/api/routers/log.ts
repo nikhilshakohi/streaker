@@ -12,19 +12,16 @@ export const logRouter = createTRPCRouter({
 
   // Create new logs for the user
   create: protectedProcedure
-    .input(z.object({ taskId: z.number() }))
+    .input(z.object({ taskId: z.number(), todayDate: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
       // Check if a log already exists for today
       const existingLog = await ctx.db.log.findFirst({
         where: {
           taskId: input.taskId,
           userId: userId,
-          completionDate: { gte: startOfDay, lte: endOfDay },
+          completionDate: input.todayDate,
         },
       });
       if (existingLog) return null;
@@ -34,7 +31,7 @@ export const logRouter = createTRPCRouter({
         data: {
           taskId: input.taskId,
           userId: userId,
-          completionDate: today,
+          completionDate: input.todayDate,
         },
       });
 
@@ -51,22 +48,16 @@ export const logRouter = createTRPCRouter({
 
   // Delete log of the use
   delete: protectedProcedure
-    .input(z.object({ taskId: z.number() }))
+    .input(z.object({ taskId: z.number(), todayDate: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      const today = new Date();
-      const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-      const endOfDay = new Date(today.setHours(23, 59, 59, 999));
 
       // Check if a log already exists for today
       const existingLog = await ctx.db.log.findFirst({
         where: {
           taskId: input.taskId,
           userId: userId,
-          completionDate: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          completionDate: input.todayDate,
         },
       });
       if (!existingLog) return null;
@@ -76,10 +67,7 @@ export const logRouter = createTRPCRouter({
         where: {
           taskId: input.taskId,
           userId: userId,
-          completionDate: {
-            gte: startOfDay,
-            lte: endOfDay,
-          },
+          completionDate: input.todayDate,
         },
       });
 

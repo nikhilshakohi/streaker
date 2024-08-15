@@ -79,8 +79,8 @@ model Task {
     id         Int      @id @default(autoincrement())
     name       String
     userId     String
-    startDate  DateTime
-    endDate    DateTime?
+    startDate  String
+    endDate    String?
     streak     Int?
     user       User    @relation(fields: [userId], references: [id])
     logs       Log[]
@@ -89,7 +89,7 @@ model Task {
 model Log {
     id             Int      @id @default(autoincrement())
     taskId         Int
-    completionDate DateTime
+    completionDate String
     userId         String
     task           Task    @relation(fields: [taskId], references: [id])
     user           User    @relation(fields: [userId], references: [id])

@@ -10,7 +10,7 @@ interface HeaderProps {
 }
 
 export default function Header({ session }: HeaderProps) {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);

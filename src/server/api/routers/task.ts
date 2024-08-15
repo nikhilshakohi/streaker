@@ -13,7 +13,7 @@ export const taskRouter = createTRPCRouter({
   // Get all tasks of the user
   getAll: protectedProcedure.query(async ({ ctx }) => {
     const tasks = await ctx.db.task.findMany({
-      orderBy: { startDate: "desc" },
+      orderBy: { id: "desc" },
       where: { userId: ctx.session.user.id },
     });
     return tasks ?? null;
@@ -26,8 +26,8 @@ export const taskRouter = createTRPCRouter({
       return ctx.db.task.create({
         data: {
           name,
-          startDate: new Date(startDate),
-          endDate: new Date(endDate),
+          startDate: startDate.toString(),
+          endDate: endDate.toString(),
           streak: streak ?? 0,
           userId: ctx.session.user.id,
         },
