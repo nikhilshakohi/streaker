@@ -1,6 +1,6 @@
 "use client";
 import { api } from "~/trpc/react";
-import React, { useState } from "react";
+import React from "react";
 import {
   eachDayOfInterval,
   format,
@@ -72,7 +72,6 @@ const calculateMaxStreak = (taskLogs: { completionDate: string }[]): number => {
 const StreakCalendar: React.FC = () => {
   const [taskData] = api.task.getAll.useSuspenseQuery();
   const [logData] = api.log.getAll.useSuspenseQuery();
-  const [loadingTaskId, setLoadingTaskId] = useState<number | null>(null); // Track loading state per task
   const allDays = eachDayOfInterval({
     start: startOfYear(new Date()),
     end: endOfYear(new Date()),
@@ -83,24 +82,6 @@ const StreakCalendar: React.FC = () => {
     (acc[month] = acc[month] ?? []).push(day);
     return acc;
   }, {});
-
-  // Handle log toggle for marking a task as done or undoing
-  const toggleLogTask = (taskId: number, hasLoggedToday: boolean) => {
-    setLoadingTaskId(taskId); // Start loading state
-    const logTask = api.log.create.useMutation({
-      onSuccess: () => setLoadingTaskId(null),
-    });
-    const undoLogTask = api.log.delete.useMutation({
-      onSuccess: () => setLoadingTaskId(null),
-    });
-
-    const todayDate = new Date().toISOString().split("T")[0];
-    if (hasLoggedToday) {
-      undoLogTask.mutate({ taskId, todayDate: todayDate ?? "" });
-    } else {
-      logTask.mutate({ taskId, todayDate: todayDate ?? "" });
-    }
-  };
 
   return (
     <div className="streak-wrapper w-full rounded-lg bg-base-200 p-6 shadow-md">
@@ -140,29 +121,6 @@ const StreakCalendar: React.FC = () => {
                 </div>
               ))}
             </div>
-            {/* Add buttons for done/undo with loader */}
-            <button
-              onClick={() =>
-                toggleLogTask(
-                  task.id,
-                  completionSet.has(
-                    new Date().toISOString().split("T")[0] ?? "",
-                  ),
-                )
-              }
-              className="btn btn-primary"
-              disabled={loadingTaskId === task.id}
-            >
-              {loadingTaskId === task.id ? (
-                <span className="loader"></span> // Show loader
-              ) : completionSet.has(
-                  new Date().toISOString().split("T")[0] ?? "",
-                ) ? (
-                "Undo"
-              ) : (
-                "Mark as Done"
-              )}
-            </button>
           </div>
         );
       })}

@@ -16,15 +16,30 @@ export default function StreakList() {
   const [taskData] = api.task.getAll.useSuspenseQuery();
   const [logData] = api.log.getAll.useSuspenseQuery();
   const utils = api.useUtils();
+
+  const [loadingTaskId, setLoadingTaskId] = useState<number | null>(null); // Loading state
+
   const refreshPage = async () => {
     await utils.task.getAll.invalidate();
     await utils.log.getAll.invalidate();
   };
 
   // Log Task Completion
-  const logTask = api.log.create.useMutation({ onSuccess: refreshPage });
+  const logTask = api.log.create.useMutation({
+    onSuccess: async () => {
+      await refreshPage();
+      setLoadingTaskId(null);
+    },
+  });
+
   // Undo Task Completion
-  const undoLogTask = api.log.delete.useMutation({ onSuccess: refreshPage });
+  const undoLogTask = api.log.delete.useMutation({
+    onSuccess: async () => {
+      await refreshPage();
+      setLoadingTaskId(null);
+    },
+  });
+
   // Edit Task
   const editTask = api.task.edit.useMutation({ onSuccess: refreshPage });
   // Delete Task
@@ -33,15 +48,16 @@ export default function StreakList() {
   const [editTaskId, setEditTaskId] = useState<number | null>(null);
   const [newTaskName, setNewTaskName] = useState<string>("");
 
-  // Toggle Task
+  // Toggle Task (mark done/undo)
   const handleLog = (taskId: number, hasLoggedToday: boolean) => {
+    setLoadingTaskId(taskId); // Set the current task to loading
     const todayDate = new Date().toISOString().split("T")[0] ?? "";
     hasLoggedToday
       ? undoLogTask.mutate({ taskId, todayDate })
       : logTask.mutate({ taskId, todayDate });
   };
 
-  // Check Task Status
+  // Check if task has been logged today
   const hasLoggedToday = (task: Task): boolean => {
     const todayDate = new Date().toISOString().split("T")[0] ?? "";
     return logData?.some(
@@ -128,12 +144,12 @@ export default function StreakList() {
                     ) : (
                       <>
                         <p className="text-lg font-semibold">{task.name}</p>
-                        <p className="text-sm text-left">Streak: {maxStreak}</p>
+                        <p className="text-left text-sm">Streak: {maxStreak}</p>
                       </>
                     )}
                   </div>
 
-                  {/* Right side: Edit, Delete, Done buttons */}
+                  {/* Right side: Edit, Delete, Done/Undo buttons */}
                   <div className="flex space-x-2">
                     {editTaskId !== task.id && (
                       <>
@@ -159,8 +175,15 @@ export default function StreakList() {
                       className={`btn ${
                         loggedToday ? "btn-secondary" : "btn-primary"
                       }`}
+                      disabled={loadingTaskId === task.id} // Disable button while loading
                     >
-                      {loggedToday ? "UNDO" : "DONE"}
+                      {loadingTaskId === task.id ? (
+                        <span className="loader"></span> // Show loader
+                      ) : loggedToday ? (
+                        "UNDO"
+                      ) : (
+                        "DONE"
+                      )}
                     </button>
                   </div>
                 </div>
