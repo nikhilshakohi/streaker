@@ -1,0 +1,49 @@
+.streak-wrapper {
+  width: 75%;
+  margin: 5px 10px;
+}
+
+.streak-calendar {
+  display: flex;
+  overflow: auto;
+}
+
+.streak-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr); /* 7 days in a week */
+  grid-gap: 5px;
+  padding: 20px;
+}
+
+.streak-box {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+}
+
+/* Box default color */
+.bg-light {
+  background-color: #ebedf0;
+}
+/* Logged box color */
+.bg-green {
+  background-color: #30a14e;
+}
+
+.loader {
+  border: 4px solid #f3f3f3; /* Light grey */
+  border-top: 4px solid #3498db; /* Blue */
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
