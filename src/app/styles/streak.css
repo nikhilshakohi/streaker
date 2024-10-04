@@ -6,6 +6,7 @@
 .streak-calendar {
   display: flex;
   overflow: auto;
+  margin-bottom: 30px;
 }
 
 .streak-grid {
